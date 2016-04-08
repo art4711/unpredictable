@@ -1,4 +1,4 @@
-package upr
+package unpredictable
 
 /*
 This code is derived from github.com/codahale/chacha20 with the following LICENSE:

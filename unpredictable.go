@@ -1,4 +1,4 @@
-package upr
+package unpredictable
 
 import (
 	badrand "math/rand"
