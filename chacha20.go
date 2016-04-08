@@ -26,10 +26,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-import (
-	"encoding/binary"
-)
-
 const (
 	stateSize = 16                   // the size of ChaCha20's state, in words
 	rounds = 20
@@ -41,29 +37,25 @@ type stream struct {
 	state  block
 }
 
-func (s *stream) InitKeyStream(key []byte, nonce []byte) {
-	if len(nonce) != 8 {
-		panic("invalid nonce size")
-	}
-
+func (s *stream) InitKeyStream(key *[8]uint32, nonce *[2]uint32) {
 	// the magic constants for 256-bit keys
 	s.state[0] = 0x61707865
 	s.state[1] = 0x3320646e
 	s.state[2] = 0x79622d32
 	s.state[3] = 0x6b206574
 
-	s.state[4] = binary.LittleEndian.Uint32(key[0:])
-	s.state[5] = binary.LittleEndian.Uint32(key[4:])
-	s.state[6] = binary.LittleEndian.Uint32(key[8:])
-	s.state[7] = binary.LittleEndian.Uint32(key[12:])
-	s.state[8] = binary.LittleEndian.Uint32(key[16:])
-	s.state[9] = binary.LittleEndian.Uint32(key[20:])
-	s.state[10] = binary.LittleEndian.Uint32(key[24:])
-	s.state[11] = binary.LittleEndian.Uint32(key[28:])
+	s.state[4] = key[0]
+	s.state[5] = key[1]
+	s.state[6] = key[2]
+	s.state[7] = key[3]
+	s.state[8] = key[4]
+	s.state[9] = key[5]
+	s.state[10] = key[6]
+	s.state[11] = key[7]
 	s.state[12] = 0
 	s.state[13] = 0
-	s.state[14] = binary.LittleEndian.Uint32(nonce[0:])
-	s.state[15] = binary.LittleEndian.Uint32(nonce[4:])
+	s.state[14] = nonce[0]
+	s.state[15] = nonce[1]
 }
 
 func (s *stream) KeyBlock(b *block) {

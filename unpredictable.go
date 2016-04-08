@@ -11,9 +11,9 @@ const ivsz = 8
 const bufSz = 1024
 
 type rs struct {
+	c stream
 	buf [bufSz]byte
 	inBuf int
-	c stream
 	count int
 }
 
@@ -27,7 +27,7 @@ func (rs *rs) stirIfNeeded(n int) {
 		if n != keysz + ivsz {
 			panic("not enough entropy")
 		}
-		rs.c.InitKeyStream(kbuf[:keysz], kbuf[keysz:])
+		rs.c.InitKeyStream((*[8]uint32)(unsafe.Pointer(&kbuf[0])), (*[2]uint32)(unsafe.Pointer(&kbuf[keysz])))
 		rs.count = 1600000
 	}
 	rs.count -= n
