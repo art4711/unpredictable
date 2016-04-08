@@ -2,7 +2,7 @@ package upr
 
 import (
 	badrand "math/rand"
-	goodrand "crypto/rand"
+//	goodrand "crypto/rand"
 	"unsafe"
 )
 
@@ -13,40 +13,56 @@ const bufSz = 1024
 type rs struct {
 	c stream
 	buf [bufSz]byte
-	inBuf int
+	have int
 	count int
+	inited bool
 }
 
 func (rs *rs) stirIfNeeded(n int) {
 	if rs.count <= n {
 		var kbuf [keysz + ivsz]byte
-		n, err := goodrand.Read(kbuf[:])
+/*		n, err := goodrand.Read(kbuf[:])
 		if err != nil {
 			panic(err)
 		}
 		if n != keysz + ivsz {
 			panic("not enough entropy")
 		}
-		rs.c.InitKeyStream((*[8]uint32)(unsafe.Pointer(&kbuf[0])), (*[2]uint32)(unsafe.Pointer(&kbuf[keysz])))
+*/
 		rs.count = 1600000
+		if !rs.inited {
+			rs.inited = true
+			rs.c.InitKeyStream((*[8]uint32)(unsafe.Pointer(&kbuf[0])), (*[2]uint32)(unsafe.Pointer(&kbuf[keysz])))
+		} else {
+			rs.rekey(kbuf[:])
+			rs.have = 0
+		}
 	}
 	rs.count -= n
 }
 
-func (rs *rs) rekey() {
-	rs.stirIfNeeded(len(rs.buf))
+func (rs *rs) rekey(extra []byte) {
+//	extra := rs.stirIfNeeded(len(rs.buf))
 	for i := 0; i < len(rs.buf); i += stateSize * 4 {
 		rs.c.KeyBlock((*block)(unsafe.Pointer(&rs.buf[i])))
 	}
-	rs.inBuf = bufSz
+	rs.have = bufSz
+	if extra != nil {
+		for i := range extra {
+			rs.buf[i] ^= extra[i]
+		}
+	}
+	rs.c.InitKeyStream((*[8]uint32)(unsafe.Pointer(&rs.buf[0])), (*[2]uint32)(unsafe.Pointer(&rs.buf[keysz])))
+	rs.have -= (keysz + ivsz)
 }
 
 func (rs *rs) Int63() int64 {
-	if rs.inBuf < 8 {
-		rs.rekey()
+	rs.stirIfNeeded(8)
+	if rs.have < 8 {
+		rs.rekey(nil)
 	}
-	o := bufSz - rs.inBuf
-	rs.inBuf -= 8
+	o := bufSz - rs.have
+	rs.have -= 8
 	i := *(*int64)(unsafe.Pointer(&rs.buf[o]))
 	return i & 0x7fffffffffffffff
 }

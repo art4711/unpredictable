@@ -60,9 +60,8 @@ func (s *stream) InitKeyStream(key *[8]uint32, nonce *[2]uint32) {
 
 func (s *stream) KeyBlock(b *block) {
 	core(&s.state, b)
-	ns := s.state[12] + 1
-	s.state[12] = ns
-	if ns == 0 {
+	s.state[12]++
+	if s.state[12] == 0 {
 		s.state[13]++
 	}
 }
@@ -106,6 +105,7 @@ func core(input, output *block) {
 		x08 += x12
 		x = x04 ^ x08
 		x04 = (x << 7) | (x >> 25)
+
 		x01 += x05
 		x = x13 ^ x01
 		x13 = (x << 16) | (x >> 16)
@@ -118,6 +118,7 @@ func core(input, output *block) {
 		x09 += x13
 		x = x05 ^ x09
 		x05 = (x << 7) | (x >> 25)
+
 		x02 += x06
 		x = x14 ^ x02
 		x14 = (x << 16) | (x >> 16)
@@ -130,6 +131,7 @@ func core(input, output *block) {
 		x10 += x14
 		x = x06 ^ x10
 		x06 = (x << 7) | (x >> 25)
+
 		x03 += x07
 		x = x15 ^ x03
 		x15 = (x << 16) | (x >> 16)
@@ -142,6 +144,7 @@ func core(input, output *block) {
 		x11 += x15
 		x = x07 ^ x11
 		x07 = (x << 7) | (x >> 25)
+
 		x00 += x05
 		x = x15 ^ x00
 		x15 = (x << 16) | (x >> 16)
@@ -154,6 +157,7 @@ func core(input, output *block) {
 		x10 += x15
 		x = x05 ^ x10
 		x05 = (x << 7) | (x >> 25)
+
 		x01 += x06
 		x = x12 ^ x01
 		x12 = (x << 16) | (x >> 16)
@@ -166,6 +170,7 @@ func core(input, output *block) {
 		x11 += x12
 		x = x06 ^ x11
 		x06 = (x << 7) | (x >> 25)
+
 		x02 += x07
 		x = x13 ^ x02
 		x13 = (x << 16) | (x >> 16)
@@ -178,6 +183,7 @@ func core(input, output *block) {
 		x08 += x13
 		x = x07 ^ x08
 		x07 = (x << 7) | (x >> 25)
+
 		x03 += x04
 		x = x14 ^ x03
 		x14 = (x << 16) | (x >> 16)
@@ -192,20 +198,20 @@ func core(input, output *block) {
 		x04 = (x << 7) | (x >> 25)
 	}
 
-	output[0] = x00
-	output[1] = x01
-	output[2] = x02
-	output[3] = x03
-	output[4] = x04
-	output[5] = x05
-	output[6] = x06
-	output[7] = x07
-	output[8] = x08
-	output[9] = x09
-	output[10] = x10
-	output[11] = x11
-	output[12] = x12
-	output[13] = x13
-	output[14] = x14
-	output[15] = x15
+	output[0] = input[0] + x00
+	output[1] = input[1] + x01
+	output[2] = input[2] + x02
+	output[3] = input[3] + x03
+	output[4] = input[4] + x04
+	output[5] = input[5] + x05
+	output[6] = input[6] + x06
+	output[7] = input[7] + x07
+	output[8] = input[8] + x08
+	output[9] = input[9] + x09
+	output[10] = input[10] + x10
+	output[11] = input[11] + x11
+	output[12] = input[12] + x12
+	output[13] = input[13] + x13
+	output[14] = input[14] + x14
+	output[15] = input[15] + x15
 }
