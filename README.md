@@ -45,3 +45,8 @@ repository for more details](https://github.com/art4711/randbench).
 The chacha20 implementation is from
 [https://github.com/codahale/chacha20](https://github.com/codahale/chacha20)
 and heavily modified to make it do only what we need it to do.
+
+## Entropy source ##
+
+Our entropy comes from "crypto/rand" which is hopefully of high enough
+quality (just slow).
