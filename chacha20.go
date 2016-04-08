@@ -1,6 +1,8 @@
 package upr
 
 /*
+This code is derived from github.com/codahale/chacha20 with the following LICENSE:
+
 The MIT License (MIT)
 
 Copyright (c) 2014 Coda Hale
@@ -26,7 +28,6 @@ THE SOFTWARE.
 
 import (
 	"encoding/binary"
-	"unsafe"
 )
 
 const (
@@ -34,11 +35,17 @@ const (
 	rounds = 20
 )
 
+type block [stateSize]uint32
+
 type stream struct {
-	state  [stateSize]uint32 // the state as an array of 16 32-bit words
+	state  block
 }
 
 func (s *stream) InitKeyStream(key []byte, nonce []byte) {
+	if len(nonce) != 8 {
+		panic("invalid nonce size")
+	}
+
 	// the magic constants for 256-bit keys
 	s.state[0] = 0x61707865
 	s.state[1] = 0x3320646e
@@ -53,24 +60,14 @@ func (s *stream) InitKeyStream(key []byte, nonce []byte) {
 	s.state[9] = binary.LittleEndian.Uint32(key[20:])
 	s.state[10] = binary.LittleEndian.Uint32(key[24:])
 	s.state[11] = binary.LittleEndian.Uint32(key[28:])
-
-	if len(nonce) != 8 {
-		panic("invalid nonce size")
-	}
 	s.state[12] = 0
 	s.state[13] = 0
 	s.state[14] = binary.LittleEndian.Uint32(nonce[0:])
 	s.state[15] = binary.LittleEndian.Uint32(nonce[4:])
 }
 
-func NewKeyStream(key []byte, nonce []byte) *stream {
-	s := &stream{}
-	s.InitKeyStream(key, nonce)
-	return s
-}
-
-func (s *stream) KeyBlock(b []byte) {
-	core2(&s.state, (*[stateSize]uint32)(unsafe.Pointer(&b[0])))
+func (s *stream) KeyBlock(b *block) {
+	core(&s.state, b)
 	ns := s.state[12] + 1
 	s.state[12] = ns
 	if ns == 0 {
@@ -78,7 +75,7 @@ func (s *stream) KeyBlock(b []byte) {
 	}
 }
 
-func core2(input, output *[stateSize]uint32) {
+func core(input, output *block) {
 	var (
 		x00 = input[0]
 		x01 = input[1]
