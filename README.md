@@ -36,9 +36,8 @@ bytes).
 
 When plugged into math.random each call to Int63 takes 40ns/op. This
 compared to the default math.random source which take 10ns/op and
-compared to buffered `C.arc4random` calls at 30ns/op. See
-[https://github.com/art4711/randbench](my test repository for more
-details).
+compared to buffered `C.arc4random` calls at 30ns/op. See [my test
+repository for more details](https://github.com/art4711/randbench).
 
 
 ## ChaCha20 implementation ##
