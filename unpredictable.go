@@ -2,7 +2,7 @@ package upr
 
 import (
 	badrand "math/rand"
-//	goodrand "crypto/rand"
+	goodrand "crypto/rand"
 	"unsafe"
 )
 
@@ -18,17 +18,16 @@ type rs struct {
 	inited bool
 }
 
-func (rs *rs) stirIfNeeded(n int) {
+func (rs *rs) willConsume(n int) int {
 	if rs.count <= n {
 		var kbuf [keysz + ivsz]byte
-/*		n, err := goodrand.Read(kbuf[:])
+		n, err := goodrand.Read(kbuf[:])
 		if err != nil {
 			panic(err)
 		}
 		if n != keysz + ivsz {
 			panic("not enough entropy")
 		}
-*/
 		rs.count = 1600000
 		if !rs.inited {
 			rs.inited = true
@@ -39,10 +38,15 @@ func (rs *rs) stirIfNeeded(n int) {
 		}
 	}
 	rs.count -= n
+	if rs.have < n {
+		rs.rekey(nil)
+	}
+	r := bufSz - rs.have
+	rs.have -= n
+	return r
 }
 
 func (rs *rs) rekey(extra []byte) {
-//	extra := rs.stirIfNeeded(len(rs.buf))
 	for i := 0; i < len(rs.buf); i += stateSize * 4 {
 		rs.c.KeyBlock((*block)(unsafe.Pointer(&rs.buf[i])))
 	}
@@ -57,12 +61,7 @@ func (rs *rs) rekey(extra []byte) {
 }
 
 func (rs *rs) Int63() int64 {
-	rs.stirIfNeeded(8)
-	if rs.have < 8 {
-		rs.rekey(nil)
-	}
-	o := bufSz - rs.have
-	rs.have -= 8
+	o := rs.willConsume(8)
 	i := *(*int64)(unsafe.Pointer(&rs.buf[o]))
 	return i & 0x7fffffffffffffff
 }
