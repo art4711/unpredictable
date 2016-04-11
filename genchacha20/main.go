@@ -12,12 +12,9 @@ func x(i int) string {
 }
 
 func step(w io.Writer, a, b, c, rot int) {
-	v := "x"
-	fmt.Fprintf(w, "\t\t{\n")
-	fmt.Fprintf(w, "\t\t\t%s += %s\n", x(a), x(b))
-	fmt.Fprintf(w, "\t\t\t%s := %s ^ %s\n", v, x(c), x(a))
-	fmt.Fprintf(w, "\t\t\t%s = (%s << %d) | (%s >> %d)\n", x(c), v, rot, v, 32 - rot)
-	fmt.Fprintf(w, "\t\t}\n")
+	fmt.Fprintf(w, "\t\t%s += %s\n", x(a), x(b))
+	fmt.Fprintf(w, "\t\t%s ^= %s\n", x(c), x(a))
+	fmt.Fprintf(w, "\t\t%s = (%s << %d) | (%s >> %d)\n", x(c), x(c), rot, x(c), 32 - rot)
 }
 
 func quarterround(w io.Writer, a, b, c, d int) {
