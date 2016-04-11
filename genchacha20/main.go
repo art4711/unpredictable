@@ -5,38 +5,60 @@ import (
 	"os"
 	"io"
 	"flag"
+	"strings"
 )
+
+type wr struct {
+	w io.Writer
+	indent int
+}
+
+func (w *wr) Ln(o ...interface{}) {
+	fmt.Fprint(w.w, strings.Repeat("\t", w.indent))
+	fmt.Fprintln(w.w, o...)
+}
+
+func (w *wr) F(f string, o ...interface{}) {
+	fmt.Fprintf(w.w, strings.Repeat("\t", w.indent) + f, o...)
+}
+
+func (w *wr) Nl() {
+	fmt.Fprintln(w.w, "")
+}
 
 func x(i int) string {
 	return fmt.Sprintf("x%.2d", i)
 }
 
-func step(w io.Writer, a, b, c, rot int) {
-	fmt.Fprintf(w, "\t\t%s += %s\n", x(a), x(b))
-	fmt.Fprintf(w, "\t\t%s ^= %s\n", x(c), x(a))
-	fmt.Fprintf(w, "\t\t%s = (%s << %d) | (%s >> %d)\n", x(c), x(c), rot, x(c), 32 - rot)
+func step(w *wr, a, b, c, rot int) {
+	w.F("%s += %s\n", x(a), x(b))
+	w.F("%s ^= %s\n", x(c), x(a))
+	w.F("%s = (%s << %d) | (%s >> %d)\n", x(c), x(c), rot, x(c), 32 - rot)
 }
 
-func quarterround(w io.Writer, a, b, c, d int) {
+func quarterround(w *wr, a, b, c, d int) {
 	step(w, a, b, d, 16)
 	step(w, c, d, b, 12)
 	step(w, a, b, d, 8)
 	step(w, c, d, b, 7)
-	fmt.Fprintln(w, "")
+	w.Nl()
 }
 
-func core(w io.Writer, rounds int) {
-	fmt.Fprintln(w, "package unpredictable")
-	fmt.Fprintln(w, "")	
-	fmt.Fprintln(w, "func (s *stream) core(output *block) {")
+func core(w *wr, rounds int) {
+	w.Ln("package unpredictable")
+	w.Nl()
+	w.Ln("func (s *stream) core(output *block) {")
+
+	w.indent++
 
 	for i := 0; i < 16; i++ {
-		fmt.Fprintf(w, "\t%s := s.state[%d]\n", x(i), i)
+		w.F("%s := s.state[%d]\n", x(i), i)
 	}
 
-	fmt.Fprintln(w, "")
+	w.Nl()
 
-	fmt.Fprintf(w, "\tfor i := 0; i < %d; i += 2 {\n", rounds)
+	w.F("for i := 0; i < %d; i += 2 {\n", rounds)
+	w.indent++
 	quarterround(w, 0, 4, 8, 12)
 	quarterround(w, 1, 5, 9, 13)
 	quarterround(w, 2, 6, 10, 14)
@@ -45,21 +67,26 @@ func core(w io.Writer, rounds int) {
 	quarterround(w, 1, 6, 11, 12)
 	quarterround(w, 2, 7, 8, 13)
 	quarterround(w, 3, 4, 9, 14)
-	fmt.Fprintln(w, "\t}")
+	w.indent--
+	w.Ln("}")
 
-	fmt.Fprintln(w, "")
+	w.Nl()
 
 	for i := 0; i < 16; i++ {
-		fmt.Fprintf(w, "\toutput[%d] = s.state[%d] + %s\n", i, i, x(i))
+		w.F("output[%d] = s.state[%d] + %s\n", i, i, x(i))
 	}
 
-	fmt.Fprintln(w, "\ts.state[12]++")
-	fmt.Fprintln(w, "\tif s.state[12] == 0 {")
-	fmt.Fprintln(w, "\t\ts.state[13]++")
-	fmt.Fprintln(w, "\t}")
-	fmt.Fprintln(w, "")
+	w.Ln("s.state[12]++")
+	w.Ln("if s.state[12] == 0 {")
+	w.indent++
+	w.Ln("s.state[13]++")
+	w.indent--
+	w.Ln("}")
+	w.Nl()
 
-	fmt.Fprintln(w, "}")
+	w.indent--
+
+	w.Ln("}")
 }
 
 func main() {
@@ -69,5 +96,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	core(o, 20)
+	w := &wr{ o, 0 }
+	core(w, 20)
 }
