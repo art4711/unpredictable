@@ -24,11 +24,11 @@ func quarterround(w io.Writer, a, b, c, d int) {
 func core(w io.Writer, rounds int) {
 	fmt.Fprintln(w, "package unpredictable")
 	fmt.Fprintln(w, "")	
-	fmt.Fprintln(w, "func core(input, output *block) {")
+	fmt.Fprintln(w, "func (s *stream) core(output *block) {")
 
 	fmt.Fprintln(w, "\tvar (")
 	for i := 0; i < 16; i++ {
-		fmt.Fprintf(w, "\t\tx%.2d = input[%d]\n", i, i)
+		fmt.Fprintf(w, "\t\tx%.2d = s.state[%d]\n", i, i)
 	}
 	fmt.Fprintln(w, "\t)")
 
@@ -52,7 +52,7 @@ func core(w io.Writer, rounds int) {
 	fmt.Fprintln(w, "")
 
 	for i := 0; i < 16; i++ {
-		fmt.Fprintf(w, "\toutput[%d] = input[%d] + x%.2d\n", i, i, i)
+		fmt.Fprintf(w, "\toutput[%d] = s.state[%d] + x%.2d\n", i, i, i)
 	}
 
 	fmt.Fprintln(w, "}")

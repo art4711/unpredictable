@@ -1,23 +1,23 @@
 package unpredictable
 
-func core(input, output *block) {
+func (s stream) core(output *block) {
 	var (
-		x00 = input[0]
-		x01 = input[1]
-		x02 = input[2]
-		x03 = input[3]
-		x04 = input[4]
-		x05 = input[5]
-		x06 = input[6]
-		x07 = input[7]
-		x08 = input[8]
-		x09 = input[9]
-		x10 = input[10]
-		x11 = input[11]
-		x12 = input[12]
-		x13 = input[13]
-		x14 = input[14]
-		x15 = input[15]
+		x00 = s.state[0]
+		x01 = s.state[1]
+		x02 = s.state[2]
+		x03 = s.state[3]
+		x04 = s.state[4]
+		x05 = s.state[5]
+		x06 = s.state[6]
+		x07 = s.state[7]
+		x08 = s.state[8]
+		x09 = s.state[9]
+		x10 = s.state[10]
+		x11 = s.state[11]
+		x12 = s.state[12]
+		x13 = s.state[13]
+		x14 = s.state[14]
+		x15 = s.state[15]
 	)
 
 	var x uint32
@@ -129,20 +129,20 @@ func core(input, output *block) {
 
 	}
 
-	output[0] = input[0] + x00
-	output[1] = input[1] + x01
-	output[2] = input[2] + x02
-	output[3] = input[3] + x03
-	output[4] = input[4] + x04
-	output[5] = input[5] + x05
-	output[6] = input[6] + x06
-	output[7] = input[7] + x07
-	output[8] = input[8] + x08
-	output[9] = input[9] + x09
-	output[10] = input[10] + x10
-	output[11] = input[11] + x11
-	output[12] = input[12] + x12
-	output[13] = input[13] + x13
-	output[14] = input[14] + x14
-	output[15] = input[15] + x15
+	output[0] = s.state[0] + x00
+	output[1] = s.state[1] + x01
+	output[2] = s.state[2] + x02
+	output[3] = s.state[3] + x03
+	output[4] = s.state[4] + x04
+	output[5] = s.state[5] + x05
+	output[6] = s.state[6] + x06
+	output[7] = s.state[7] + x07
+	output[8] = s.state[8] + x08
+	output[9] = s.state[9] + x09
+	output[10] = s.state[10] + x10
+	output[11] = s.state[11] + x11
+	output[12] = s.state[12] + x12
+	output[13] = s.state[13] + x13
+	output[14] = s.state[14] + x14
+	output[15] = s.state[15] + x15
 }

@@ -34,7 +34,7 @@ func (s *stream) InitKeyStream(key *[8]uint32, nonce *[2]uint32) {
 }
 
 func (s *stream) KeyBlock(b *block) {
-	core(&s.state, b)
+	s.core(b)
 	s.state[12]++
 	if s.state[12] == 0 {
 		s.state[13]++
