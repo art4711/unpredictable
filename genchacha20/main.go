@@ -7,10 +7,17 @@ import (
 	"flag"
 )
 
+func x(i int) string {
+	return fmt.Sprintf("x%.2d", i)
+}
+
 func step(w io.Writer, a, b, c, rot int) {
-	fmt.Fprintf(w, "\t\tx%.2d += x%.2d\n", a, b)
-	fmt.Fprintf(w, "\t\tx = x%.2d ^ x%.2d\n", c, a)
-	fmt.Fprintf(w, "\t\tx%.2d = (x << %d) | (x >> %d)\n", c, rot, 32 - rot)
+	v := "x"
+	fmt.Fprintf(w, "\t\t{\n")
+	fmt.Fprintf(w, "\t\t\t%s += %s\n", x(a), x(b))
+	fmt.Fprintf(w, "\t\t\t%s := %s ^ %s\n", v, x(c), x(a))
+	fmt.Fprintf(w, "\t\t\t%s = (%s << %d) | (%s >> %d)\n", x(c), v, rot, v, 32 - rot)
+	fmt.Fprintf(w, "\t\t}\n")
 }
 
 func quarterround(w io.Writer, a, b, c, d int) {
@@ -26,15 +33,9 @@ func core(w io.Writer, rounds int) {
 	fmt.Fprintln(w, "")	
 	fmt.Fprintln(w, "func (s *stream) core(output *block) {")
 
-	fmt.Fprintln(w, "\tvar (")
 	for i := 0; i < 16; i++ {
-		fmt.Fprintf(w, "\t\tx%.2d = s.state[%d]\n", i, i)
+		fmt.Fprintf(w, "\t%s := s.state[%d]\n", x(i), i)
 	}
-	fmt.Fprintln(w, "\t)")
-
-	fmt.Fprintln(w, "")
-
-	fmt.Fprintln(w, "\tvar x uint32")
 
 	fmt.Fprintln(w, "")
 
@@ -52,8 +53,14 @@ func core(w io.Writer, rounds int) {
 	fmt.Fprintln(w, "")
 
 	for i := 0; i < 16; i++ {
-		fmt.Fprintf(w, "\toutput[%d] = s.state[%d] + x%.2d\n", i, i, i)
+		fmt.Fprintf(w, "\toutput[%d] = s.state[%d] + %s\n", i, i, x(i))
 	}
+
+	fmt.Fprintln(w, "\ts.state[12]++")
+	fmt.Fprintln(w, "\tif s.state[12] == 0 {")
+	fmt.Fprintln(w, "\t\ts.state[13]++")
+	fmt.Fprintln(w, "\t}")
+	fmt.Fprintln(w, "")
 
 	fmt.Fprintln(w, "}")
 }
