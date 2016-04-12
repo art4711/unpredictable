@@ -44,12 +44,6 @@ repository for more details](https://github.com/art4711/randbench).
 With the (not yet released, hopefully in go 1.7) ssa compiler the
 generated code is approximately twice as fast.
 
-## ChaCha20 implementation ##
-
-The chacha20 implementation is from
-[https://github.com/codahale/chacha20](https://github.com/codahale/chacha20)
-and heavily modified to make it do only what we need it to do.
-
 ## Entropy source ##
 
 Our entropy comes from "crypto/rand" which is hopefully of high enough
