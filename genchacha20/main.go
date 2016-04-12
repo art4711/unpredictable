@@ -70,14 +70,12 @@ func r(w *wr, x []m) {
 }
 
 func core(w *wr, rounds int) {
-	w.Ln("package unpredictable")
-	w.Nl()
 	w.Ln("func (s *stream) core(output *block) {")
 
 	w.indent++
 
 	for i := 0; i < 16; i++ {
-		w.F("%s := s.state[%d]\n", x(i), i)
+		w.F("%s := s[%d]\n", x(i), i)
 	}
 
 	w.Nl()
@@ -92,19 +90,61 @@ func core(w *wr, rounds int) {
 	w.Nl()
 
 	for i := 0; i < 16; i++ {
-		w.F("output[%d] = s.state[%d] + %s\n", i, i, x(i))
+		w.F("output[%d] = s[%d] + %s\n", i, i, x(i))
 	}
 
-	w.Ln("s.state[12]++")
-	w.Ln("if s.state[12] == 0 {")
+	w.Ln("s[12]++")
+	w.Ln("if s[12] == 0 {")
 	w.indent++
-	w.Ln("s.state[13]++")
+	w.Ln("s[13]++")
 	w.indent--
 	w.Ln("}")
 	w.Nl()
 
 	w.indent--
 
+	w.Ln("}")
+}
+
+func core_slice(w *wr, rounds int) {
+	w.Ln("func (s *stream) core_slice(output []block) {")
+
+	w.indent++
+
+	w.Ln("for b := range output {")
+	w.indent++
+
+	for i := 0; i < 16; i++ {
+		w.F("%s := s[%d]\n", x(i), i)
+	}
+
+	w.Nl()
+
+	w.F("for i := %d; i > 0; i -= 2 {\n", rounds)
+	w.indent++
+	r(w, []m{ { 0, 4, 8, 12 }, { 1, 5, 9, 13 }, { 2, 6, 10, 14 }, { 3, 7, 11, 15 } })
+	r(w, []m{ { 0, 5, 10, 15 }, { 1, 6, 11, 12 }, { 2, 7, 8, 13 }, { 3, 4, 9, 14 } })
+	w.indent--
+	w.Ln("}")
+
+	w.Nl()
+
+	for i := 0; i < 16; i++ {
+		w.F("output[b][%d] = s[%d] + %s\n", i, i, x(i))
+	}
+
+	w.Ln("s[12]++")
+	w.Ln("if s[12] == 0 {")
+	w.indent++
+	w.Ln("s[13]++")
+	w.indent--
+	w.Ln("}")
+	w.Nl()
+
+	w.indent--
+	w.Ln("}")
+
+	w.indent--
 	w.Ln("}")
 }
 
@@ -116,5 +156,11 @@ func main() {
 		os.Exit(1)
 	}
 	w := &wr{ o, 0 }
+
+	w.Ln("package unpredictable")
+	w.Nl()
+
 	core(w, 20)
+	w.Nl()
+	core_slice(w, 20)
 }

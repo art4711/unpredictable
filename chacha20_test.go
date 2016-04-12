@@ -38,6 +38,23 @@ func TestChaCha20(t *testing.T) {
 	cmp(t, b2, e2)
 }
 
+func TestChaCha20Blocks(t *testing.T) {
+	s1 := stream{}
+	s1.InitKeyStream(&[8]uint32{ 42, 17, 2, 3, 4, 5, 6, 7 }, &[2]uint32{ 17, 42 })
+	s2 := stream{}
+	s2.InitKeyStream(&[8]uint32{ 42, 17, 2, 3, 4, 5, 6, 7 }, &[2]uint32{ 17, 42 })
+
+	for i := 0; i < 50000; i++ {
+		var bls [16]block
+		s2.KeyBlocks(&bls)
+		for j := range bls {
+			var bl block
+			s1.KeyBlock(&bl)
+			cmp(t, bl, bls[j])
+		}
+	}
+}
+
 func BenchmarkChaCha20(b *testing.B) {
 	b.ReportAllocs()
 	b.SetBytes(int64(64))
@@ -46,5 +63,17 @@ func BenchmarkChaCha20(b *testing.B) {
 	var bl block
 	for i := 0; i < b.N; i++ {
 		s.KeyBlock(&bl)
+	}
+}
+
+func BenchmarkChaCha20Blocks(b *testing.B) {
+	b.ReportAllocs()
+	b.SetBytes(int64(1024))
+	s := &stream{}
+	s.InitKeyStream(&[8]uint32{ 0, 1, 2, 3, 4, 5, 6, 7 }, &[2]uint32{ 17, 42 })
+	var bl [16]block
+	s.KeyBlocks(&bl)
+	for i := 0; i < b.N; i++ {
+		s.KeyBlocks(&bl)
 	}
 }

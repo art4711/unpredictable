@@ -18,6 +18,7 @@ type rs struct {
 	inited bool
 }
 
+
 func (rs *rs) willConsume(n int) int {
 	if rs.count <= n {
 		var kbuf [keysz + ivsz]byte
@@ -47,9 +48,7 @@ func (rs *rs) willConsume(n int) int {
 }
 
 func (rs *rs) rekey(extra []byte) {
-	for i := 0; i < len(rs.buf); i += stateSize * 4 {
-		rs.c.KeyBlock((*block)(unsafe.Pointer(&rs.buf[i])))
-	}
+	rs.c.KeyBlocks((*[16]block)(unsafe.Pointer(&rs.buf[0])))
 	rs.have = bufSz
 	if extra != nil {
 		for i := range extra {
