@@ -30,18 +30,43 @@ func x(i int) string {
 	return fmt.Sprintf("x%.2d", i)
 }
 
-func step(w *wr, a, b, c, rot int) {
+func add(w *wr, a, b int) {
 	w.F("%s += %s\n", x(a), x(b))
-	w.F("%s ^= %s\n", x(c), x(a))
-	w.F("%s = (%s << %d) | (%s >> %d)\n", x(c), x(c), rot, x(c), 32 - rot)
 }
 
-func quarterround(w *wr, a, b, c, d int) {
-	step(w, a, b, d, 16)
-	step(w, c, d, b, 12)
-	step(w, a, b, d, 8)
-	step(w, c, d, b, 7)
-	w.Nl()
+func xor(w *wr, a, b int) {
+	w.F("%s ^= %s\n", x(a), x(b))
+}
+
+func rot(w *wr, a, r int) {
+	w.F("%s = (%s << %d) | (%s >> %d)\n", x(a), x(a), r, x(a), 32 - r)
+}
+
+
+type m struct {
+	a int
+	b int
+	c int
+	d int
+}
+
+func r(w *wr, x []m) {
+	for _, u := range x {
+		add(w, u.a, u.b)
+		xor(w, u.d, u.a)
+		rot(w, u.d, 16)
+		add(w, u.c, u.d)
+		xor(w, u.b, u.c)
+		rot(w, u.b, 12)
+	}
+	for _, u := range x {
+		add(w, u.a, u.b)
+		xor(w, u.d, u.a)
+		rot(w, u.d, 8)
+		add(w, u.c, u.d)
+		xor(w, u.b, u.c)
+		rot(w, u.b, 7)
+	}
 }
 
 func core(w *wr, rounds int) {
@@ -57,16 +82,10 @@ func core(w *wr, rounds int) {
 
 	w.Nl()
 
-	w.F("for i := 0; i < %d; i += 2 {\n", rounds)
+	w.F("for i := %d; i > 0; i -= 2 {\n", rounds)
 	w.indent++
-	quarterround(w, 0, 4, 8, 12)
-	quarterround(w, 1, 5, 9, 13)
-	quarterround(w, 2, 6, 10, 14)
-	quarterround(w, 3, 7, 11, 15)
-	quarterround(w, 0, 5, 10, 15)
-	quarterround(w, 1, 6, 11, 12)
-	quarterround(w, 2, 7, 8, 13)
-	quarterround(w, 3, 4, 9, 14)
+	r(w, []m{ { 0, 4, 8, 12 }, { 1, 5, 9, 13 }, { 2, 6, 10, 14 }, { 3, 7, 11, 15 } })
+	r(w, []m{ { 0, 5, 10, 15 }, { 1, 6, 11, 12 }, { 2, 7, 8, 13 }, { 3, 4, 9, 14 } })
 	w.indent--
 	w.Ln("}")
 
