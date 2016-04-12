@@ -41,6 +41,8 @@ compared to the default math.random source which take 10ns/op and
 compared to buffered `C.arc4random` calls at 30ns/op. See [my test
 repository for more details](https://github.com/art4711/randbench).
 
+With the (not yet released, hopefully in go 1.7) ssa compiler the
+generated code is approximately twice as fast.
 
 ## ChaCha20 implementation ##
 
