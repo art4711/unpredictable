@@ -36,13 +36,10 @@ bytes). Any bugs in here are likely to show up there too.
 
 ## Performance ##
 
-When plugged into math.random each call to Int63 takes 40ns/op. This
-compared to the default math.random source which take 10ns/op and
-compared to buffered `C.arc4random` calls at 30ns/op. See [my test
-repository for more details](https://github.com/art4711/randbench).
-
-With the (not yet released, hopefully in go 1.7) ssa compiler the
-generated code is approximately twice as fast.
+When plugged into math.random each call to Int63 takes 27ns/op on my
+machine. This compared to the default math.random source which take
+8ns/op and compared to buffered `C.arc4random` calls at 35ns/op. See
+[my test repository for more details](https://github.com/art4711/randbench).
 
 ## Entropy source ##
 
@@ -52,7 +49,5 @@ quality (just slow).
 ## Additional safety ##
 
 As opposed to the OpenBSD implementation we don't have fork detection
-(not sure how to approach that in Go) and we don't have globally
-exported functions so early startup is not ensured (might not be
-possible) and locking is up to the user. Some, if not all, of these
-problems will be solved when a proper API materializes.
+(not sure how to approach that in Go) and locking is up to the
+user.
