@@ -40,10 +40,13 @@ bytes). Any bugs in here are likely to show up there too.
 
 ## Performance ##
 
-When plugged into math.random each call to Int63 takes 27ns/op on my
+When plugged into math/rand each call to Int63 takes 27ns/op on my
 machine. This compared to the default math.random source which take
 8ns/op and compared to buffered `C.arc4random` calls at 35ns/op. See
 [my test repository for more details](https://github.com/art4711/randbench).
+
+When used as an `io.Reader` this looks even better. `math/rand` can
+pump 430MB/s on my MacBook, unpredictable does 460MB/s.
 
 ## Entropy source ##
 
