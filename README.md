@@ -18,13 +18,17 @@ it's right there in the name.
 
 ## API ##
 
-Currently the only API provided is a math/rand.Source which we can get
-by calling `unpredictable.NewMathRandSource()`. It provides the
-interface that math/rand expects, but the Seed() function causes a
-panic, since we want to provide unpredictable numbers, not random. I
-want to do some thinking and preferably have some heavy user before I
-start inventing an API. Maybe plugging it into math/rand is all the
-API we need.
+Currently there are three APIs provided:
+
+ * A math/rand.Source which we can get by calling
+   `unpredictable.NewMathRandSource()`. It provides the interface that
+   math/rand expects, but the Seed() function causes a panic, since we
+   want to provide unpredictable numbers, not random.
+
+ * An `io.Reader` which we can get by calling `unpredictable.NewReader()`
+
+ * `unpredictable.Read()` which is like a normal `io.Reader`. This is
+   goroutine safe.
 
 ## Correctness ##
 
