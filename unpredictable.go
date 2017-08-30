@@ -1,8 +1,10 @@
 package unpredictable
 
 import (
-	badrand "math/rand"
 	goodrand "crypto/rand"
+	"io"
+	badrand "math/rand"
+	"sync"
 	"unsafe"
 )
 
@@ -11,13 +13,12 @@ const ivsz = 8
 const bufSz = 1024
 
 type rs struct {
-	c stream
-	buf [bufSz]byte
-	have int
-	count int
+	c      stream
+	buf    [bufSz]byte
+	have   int
+	count  int
 	inited bool
 }
-
 
 func (rs *rs) willConsume(n int) int {
 	if rs.count <= n {
@@ -26,7 +27,7 @@ func (rs *rs) willConsume(n int) int {
 		if err != nil {
 			panic(err)
 		}
-		if n != keysz + ivsz {
+		if n != keysz+ivsz {
 			panic("not enough entropy")
 		}
 		rs.count = 1600000
@@ -69,6 +70,37 @@ func (rs *rs) Seed(s int64) {
 	panic("no")
 }
 
+func (rs *rs) Read(data []byte) (int, error) {
+	n := 0
+	for {
+		l := len(data)
+		if l == 0 {
+			break
+		}
+		if l > 984 { // This is the maximum read size since we eat up 40 bytes out of 1024 on every rekey.
+			l = 984
+		}
+		o := rs.willConsume(l)
+		copy(data[:l], rs.buf[o:o+l])
+		data = data[l:]
+		n += l
+	}
+	return n, nil
+}
+
 func NewMathRandSource() badrand.Source {
 	return &rs{}
+}
+
+func NewReader() io.Reader {
+	return &rs{}
+}
+
+var gMtx sync.Mutex
+var gRs rs
+
+func Read(data []byte) (int, error) {
+	gMtx.Lock()
+	defer gMtx.Unlock()
+	return gRs.Read(data)
 }
